@@ -7,7 +7,7 @@ RPQ-Client is a priority queue implementation in Redis written in pure PHP.
 RPQ-Client can be added to your application via [Composer](https://getcomposer.org/).
 
 ```
-composer require rpq-client
+composer require rpq/client
 ```
 
 > Note that RPQ-Client requires [PHPRedis](https://github.com/phpredis/phpredis).

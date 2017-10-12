@@ -1,5 +1,5 @@
 {
-    "name": "rqp-client",
+    "name": "rqp/client",
     "description": "Redis Priority Queue Client implementation in pure PHP",
     "license": "BSD-3-Clause",
     "authors": [
