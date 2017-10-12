@@ -9,8 +9,8 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "": "src/"
+        "psr-4": {
+            "RPQ\\": "src/"
         }
     },
     "require": {

@@ -88,9 +88,12 @@ final class Client
             return null;
         }
 
-        while ($this->redis->zrem($key, $element) === 0) {
+        // Atomic ZPOP
+        $this->redis->watch($key);
+        while (!$this->redis->multi()->zrem($key, $element)->exec()) {
             $element = $this->getFirstElementFromQueue($key);
         }
+        $this->redis->unwatch($key);
 
         return $this->serializer->deserialize($element);
     }
