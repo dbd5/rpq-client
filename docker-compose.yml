@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  php:
+    image: charlesportwoodii/xenial-test:php71
+    working_dir: /var/www
+    links:
+      - redis:redis
+    volumes:
+      - ${PWD-.}:/var/www
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
