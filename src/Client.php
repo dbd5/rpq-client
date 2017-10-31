@@ -74,7 +74,7 @@ final class Client
         $this->redis->hMset("$key:$jobId", [
             'workerClass' => $workerClass,
             'retry' => (int)$retry,
-            'priority' => $priority
+            'priority' => $priority,
             'args' => \json_encode($args)
         ]);
         $this->redis->zincrby($key, $priority, "$key:$jobId");
