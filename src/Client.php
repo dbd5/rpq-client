@@ -60,7 +60,7 @@ final class Client
      */
     public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default', $jobId = null) : string
     {
-        if ($jobId != null) {
+        if ($jobId === null) {
             try {
                 $uuid = Uuid::uuid4();
                 $jobId = $uuid->toString();
