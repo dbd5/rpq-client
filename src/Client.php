@@ -58,12 +58,12 @@ final class Client
 
         $key = $this->generateListKey($queueName);
 
-        $this->redis->zincrby($key, $priority, "$key:$jobId");
         $this->redis->hMset("$key:$jobId", [
             'workerClass' => $workerClass,
             'retry' => (int)$retry,
             'args' => \json_encode($args)
         ]);
+        $this->redis->zincrby($key, $priority, "$key:$jobId");
 
         return $jobId;
     }
