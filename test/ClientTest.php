@@ -16,7 +16,6 @@ final class ClientTest extends TestCase
     {
         $this->redis = new Redis();
         $this->redis->connect(getenv('REDIS'));
-
         // Delete the existing queue
         $this->redis->del("queue:default");
         $this->rpq = new Client($this->redis);
@@ -24,10 +23,20 @@ final class ClientTest extends TestCase
 
     public function testPushAndPop()
     {
-        $jobId = $this->rpq->push('SimpleWorker');
+        $jobName = 'SimpleWorker';
+        $retry = 1;
+        $args = [
+            'foo' => 'bar'
+        ];
+        $jobId = $this->rpq->push($jobName, $args, $retry);
         $this->assertNotNull($jobId);
-        $job = $this->rpq->pop();
-        $this->assertEquals($jobId, $job['jobId']);
-        $this->assertEquals('SimpleWorker', $job['class']);
+        $id = $this->rpq->pop();
+        $this->assertEquals($jobId, explode(':', $id)[2]);
+
+        $job = $this->rpq->getJobById(explode(':', $id)[2]);
+        $this->assertEquals($jobName, $job['workerClass']);
+        $this->assertEquals($retry, $job['retry']);
+        $this->assertEquals($args, $job['args']);
+
     }
 }

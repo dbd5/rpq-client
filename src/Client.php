@@ -5,8 +5,6 @@ namespace RPQ;
 use Redis;
 use Exception;
 
-use RPQ\Serializer;
-
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
@@ -28,12 +26,6 @@ final class Client
     private $namespace;
 
     /**
-     * Serializer
-     * @var Serializer
-     */
-    private $serializer;
-
-    /**
      * Constructor
      *
      * @param Redis $redis
@@ -43,7 +35,6 @@ final class Client
     {
         $this->redis = $redis;
         $this->namespace = $namespace;
-        $this->serializer = new Serializer;
     }
 
     /**
@@ -56,7 +47,7 @@ final class Client
      * @param string $queueName
      * @return string
      */
-    public function push($workerClass, array $args = [], $retry = false, $priority = 1, $queueName = 'default') : string
+    public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default') : string
     {
         try {
             $uuid = Uuid::uuid4();
@@ -66,11 +57,30 @@ final class Client
         }
 
         $key = $this->generateListKey($queueName);
-        $message = $this->serializer->serialize($workerClass, $jobId, $args, $retry, $priority);
 
-        $this->redis->zincrby($key, $priority, $message);
+        $this->redis->zincrby($key, $priority, "$key:$jobId");
+        $this->redis->hMset("$key:$jobId", [
+            'workerClass' => $workerClass,
+            'retry' => (int)$retry,
+            'args' => \json_encode($args)
+        ]);
 
         return $jobId;
+    }
+
+    /**
+     * Retrieves a job by it's ID and queue name
+     *
+     * @param string $id
+     * @param string $queueName
+     * @return array
+     */
+    public function getJobById($id, $queueName = 'default') : array
+    {
+        $key = $this->generateListKey($queueName);
+        $job = $this->redis->hGetAll("$key:$id");
+        $job['args'] = \json_decode($job['args'], true);
+        return $job;
     }
 
     /**
@@ -79,7 +89,7 @@ final class Client
      * @param string $queueName
      * @return array
      */
-    public function pop($queueName = 'default') :? array
+    public function pop($queueName = 'default') :? string
     {
         $key = $this->generateListKey($queueName);
 
@@ -95,7 +105,7 @@ final class Client
         }
         $this->redis->unwatch($key);
 
-        return $this->serializer->deserialize($element);
+        return $element;
     }
 
     /**
@@ -125,7 +135,7 @@ final class Client
         $filter = [
             $this->namespace,
             'queue',
-            $queueName
+            \str_replace(':', '.', $queueName)
         ];
         $parts = \array_filter($filter, 'strlen');
         return \implode(':', $parts);
