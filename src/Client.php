@@ -38,6 +38,16 @@ final class Client
     }
 
     /**
+     * Retrieves the Redis instance
+     *
+     * @return Redis
+     */
+    public function getRedis()
+    {
+        return $this->redis;
+    }
+
+    /**
      * Pushes a new job onto the priority queue
      *
      * @param string $workerClass
@@ -45,15 +55,18 @@ final class Client
      * @param boolean $retry
      * @param integer $priority
      * @param string $queueName
+     * @param string $jobId
      * @return string
      */
-    public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default') : string
+    public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default', $jobId = null) : string
     {
-        try {
-            $uuid = Uuid::uuid4();
-            $jobId = $uuid->toString();
-        } catch (UnsatisfiedDependencyException $e) {
-            throw new Exception('An error occured when generating the JobID');
+        if ($jobId != null) {
+            try {
+                $uuid = Uuid::uuid4();
+                $jobId = $uuid->toString();
+            } catch (UnsatisfiedDependencyException $e) {
+                throw new Exception('An error occured when generating the JobID');
+            }
         }
 
         $key = $this->generateListKey($queueName);
@@ -61,6 +74,7 @@ final class Client
         $this->redis->hMset("$key:$jobId", [
             'workerClass' => $workerClass,
             'retry' => (int)$retry,
+            'priority' => $priority
             'args' => \json_encode($args)
         ]);
         $this->redis->zincrby($key, $priority, "$key:$jobId");
