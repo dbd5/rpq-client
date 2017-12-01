@@ -35,7 +35,7 @@ final class ClientTest extends TestCase
 
         $job = $this->rpq->getJobById(explode(':', $id)[2]);
         $this->assertEquals($jobName, $job['workerClass']);
-        $this->assertEquals($retry, $job['retry']);
+        $this->assertEquals($retry, \explode(':', $job['retry'])[1]);
         $this->assertEquals($args, $job['args']);
 
     }

@@ -74,17 +74,14 @@ final class Client
         $key = $this->generateListKey($queueName);
 
         $id = "$key:$jobId";
-        $this->redis->multi()
+        $result = $this->redis->multi()
             ->hMset($id, [
                 'workerClass' => $workerClass,
-                'retry' => [
-                    'type' => \gettype($retry),
-                    'value' => $retry
-                ],
+                'retry' => \gettype($retry) . ':' . $retry,
                 'priority' => $at ?? $priority,
                 'args' => \json_encode($args)
             ])
-            ->zincrby($at === null ? $key : $key . '-scheduled', $at ?? $priority, $id)
+            ->zincrby(($at === null ? $key : $key . '-scheduled'), ($at ?? $priority), $id)
             ->exec();
 
         return $jobId;
