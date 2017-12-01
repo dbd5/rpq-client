@@ -77,7 +77,10 @@ final class Client
         $this->redis->multi()
             ->hMset($id, [
                 'workerClass' => $workerClass,
-                'retry' => $retry,
+                'retry' => [
+                    'type' => \gettype($retry),
+                    'value' => $retry
+                ],
                 'priority' => $at ?? $priority,
                 'args' => \json_encode($args)
             ])
