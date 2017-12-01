@@ -33,9 +33,13 @@ $args = [
 $retry = true;
 $queueName = 'queue';
 $priority = 3;
+$at = \strtotime('+5 minutes');
 
 // Push a new task onto the priority queue, get a UUIDv4 JobID back in response
 $jobId = $rpq->push('Worker', $args, $retry, $priority, $queueName);
+
+// Jobs can be scheduled for a future time by setting the `$at` property to a future unix timestamp
+$jobId = $rpq->push('Worker', $args, $retry, $priority, $queueName, $at);
 
 // The front element of the queue can be popped, this returns the entire job as an array
 $job = $rpq->pop();

@@ -2,8 +2,9 @@
 
 namespace RPQ;
 
+use RPQ\Client\Exception\JobNotFoundException;
+use RPQ\Client\Exception\FailedToCreateJobIdException;
 use Redis;
-use Exception;
 
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
@@ -52,32 +53,36 @@ final class Client
      *
      * @param string $workerClass
      * @param array $args
-     * @param boolean $retry
+     * @param boolean|integer $retry
      * @param integer $priority
      * @param string $queueName
+     * @param integer $at
      * @param string $jobId
      * @return string
      */
-    public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default', $jobId = null) : string
+    public function push($workerClass, array $args = [], $retry = false, $priority = 0, $queueName = 'default', $at = null, $jobId = null) : string
     {
         if ($jobId === null) {
             try {
                 $uuid = Uuid::uuid4();
                 $jobId = $uuid->toString();
             } catch (UnsatisfiedDependencyException $e) {
-                throw new Exception('An error occured when generating the JobID');
+                throw new FailedToCreateJobIdException('An error occured when generating the JobID');
             }
         }
 
         $key = $this->generateListKey($queueName);
 
-        $this->redis->hMset("$key:$jobId", [
-            'workerClass' => $workerClass,
-            'retry' => (int)$retry,
-            'priority' => $priority,
-            'args' => \json_encode($args)
-        ]);
-        $this->redis->zincrby($key, $priority, "$key:$jobId");
+        $id = "$key:$jobId";
+        $this->redis->multi()
+            ->hMset($id, [
+                'workerClass' => $workerClass,
+                'retry' => $retry,
+                'priority' => $at ?? $priority,
+                'args' => \json_encode($args)
+            ])
+            ->zincrby($at === null ? $key : $key . '-scheduled', $at ?? $priority, $id)
+            ->exec();
 
         return $jobId;
     }
@@ -93,6 +98,11 @@ final class Client
     {
         $key = $this->generateListKey($queueName);
         $job = $this->redis->hGetAll("$key:$id");
+
+        if (empty($job)) {
+            throw new JobNotFoundException('Unable to fetch job details from Redis.');
+        }
+
         $job['args'] = \json_decode($job['args'], true);
         return $job;
     }
@@ -117,9 +127,39 @@ final class Client
         while (!$this->redis->multi()->zrem($key, $element)->exec()) {
             $element = $this->getFirstElementFromQueue($key);
         }
+
         $this->redis->unwatch($key);
 
         return $element;
+    }
+
+    /**
+     * Takes jobs from the schuled queue with a ZSCORE <= $time, and pushes it onto the main stack
+     * @param string $queueName
+     * @param string $time
+     * @return integer
+     */
+    public function rescheduleJobs($queueName = 'default', $time = null) : int
+    {
+        if ($time === null) {
+            $time = (string)time();
+        }
+
+        $key = $this->generateListKey($queueName);
+
+        $k = $key . '-scheduled';
+        $this->redis->watch($k);
+        $result = $this->redis->multi()
+            ->zrevrangebyscore($k, $time, "0")
+            ->zremrangebyscore($k, "0", $time)
+            ->exec();
+        $this->redis->unwatch($k);
+
+        foreach ($result[0] as $job) {
+            $this->redis->zincrby($key, 0, $job);
+        }
+
+        return $result[1];
     }
 
     /**
