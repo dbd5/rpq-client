@@ -92,11 +92,11 @@ final class Job
      * @param string $workerClass
      * @param array $args
      * @param boolean|integer $retry
-     * @param integer $priority
+     * @param float $priority
      * @param integer $at
      * @return boolean
      */
-    public function schedule($workerClass, array $args = [], $retry = false, $priority = 0, $at = null)
+    public function schedule($workerClass, array $args = [], $retry = false, float $priority = 0, $at = null)
     {
         $key = $this->queue->generateListKey();
         if ($this->id === null) {
@@ -117,7 +117,7 @@ final class Job
                 'priority' => $at ?? $priority,
                 'args' => \json_encode($args)
             ])
-            ->zincrby(($at === null ? $key : $key . '-scheduled'), ($at ?? $priority), $id)
+            ->zincrby(($at === null ? $key : $key . '-scheduled'), (float)($at ?? $priority), $id)
             ->exec();
         
         // If the queue and hash were added, hydrate the model then return true
