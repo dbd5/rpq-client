@@ -1,5 +1,7 @@
 # Redis Priority Queue Client
 
+[![Travis CI](https://img.shields.io/travis/charlesportwoodii/rpq-client.svg?style=flat-square)](https://travis-ci.org/charlesportwoodii/rpq-client)
+
 RPQ-Client is a priority task queue implementation in Redis written in pure PHP. This repository contains the Client codebase which can be used to schedule jobs from applications. Additionally, this codebase is used by the [RPQ Server](https://github.com/charlesportwoodii/rqp-server) implementation to work with and process jobs.
 
 > Note that this codebase is constantly evolving. Until a tagged release is made, the API may change at any time.
