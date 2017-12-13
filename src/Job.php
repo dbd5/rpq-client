@@ -121,13 +121,13 @@ final class Job
             ->exec();
         
         // If the queue and hash were added, hydrate the model then return true
-        if ($result[0] === true && $result[1]) {
+        if ($result[0] === true) {
             $this->workerClass = $workerClass;
             $this->args = $args;
             $this->retry = $retry;
             $this->priority = $priority;
             return true;
-        } else if ($result[0] === true && !$result[1]) {
+        } else {
             // If the job was not added to the queue, remove the hash
             $this->cancel();
             return false;

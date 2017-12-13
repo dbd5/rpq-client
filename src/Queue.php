@@ -135,9 +135,9 @@ final class Queue
     /**
      * Takes jobs from the schuled queue with a ZSCORE <= $time, and pushes it onto the main stack
      * @param string $time
-     * @return integer
+     * @return boolean
      */
-    public function rescheduleJobs($time = null) : int
+    public function rescheduleJobs($time = null) : bool
     {
         if ($time === null) {
             $time = (string)time();
@@ -145,16 +145,21 @@ final class Queue
 
         $key = $this->generateListKey();
 
+        $redis = $this->getClient()->getRedis();
         $k = $key . '-scheduled';
-        $this->getClient()->getRedis()->watch($k);
-        $result = $this->getClient()->getRedis()->multi()
+        $redis->watch($k);
+        $result = $redis->multi()
             ->zrevrangebyscore($k, $time, "0")
             ->zremrangebyscore($k, "0", $time)
             ->exec();
-        $this->getClient()->getRedis()->unwatch($k);
+        $redis->unwatch($k);
 
+        if ($result[0] === false) {
+            return true;
+        }
+        
         foreach ($result[0] as $job) {
-            $this->getClient()->getRedis()->zincrby($key, 0, $job);
+           $redis->zincrby($key, 0, $job);
         }
 
         return $result[1];
