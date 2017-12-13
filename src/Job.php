@@ -71,7 +71,7 @@ final class Job
      * 
      * @return integer|null
      */
-    public function getPriority() :? int
+    public function getPriority() :? float
     {
         return (int)$this->priority;
     }
