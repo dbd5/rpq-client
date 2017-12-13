@@ -135,9 +135,9 @@ final class Queue
     /**
      * Takes jobs from the schuled queue with a ZSCORE <= $time, and pushes it onto the main stack
      * @param string $time
-     * @return boolean
+     * @return int
      */
-    public function rescheduleJobs($time = null) : bool
+    public function rescheduleJobs($time = null) :? int
     {
         if ($time === null) {
             $time = (string)time();
@@ -155,9 +155,9 @@ final class Queue
         $redis->unwatch($k);
 
         if ($result[0] === false) {
-            return true;
+            return 0;
         }
-        
+
         foreach ($result[0] as $job) {
            $redis->zincrby($key, 0, $job);
         }
@@ -191,7 +191,7 @@ final class Queue
         $filter = [
             $this->getClient()->getNamespace(),
             'queue',
-            \str_replace(':', '.', $this->name)
+            \str_replace(':', '.', $this->getName())
         ];
         $parts = \array_filter($filter, 'strlen');
         return \implode(':', $parts);
