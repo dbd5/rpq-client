@@ -2,6 +2,7 @@
 
 namespace RPQ;
 
+use RPQ\Client\Exception\JobNotFoundException;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 use Redis;
