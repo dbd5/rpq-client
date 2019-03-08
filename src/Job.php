@@ -49,7 +49,7 @@ final class Job
 
     /**
      * Returns the fully-qualified class name of the job
-     * 
+     *
      * @return string|null
      */
     public function getWorkerClass() :? string
@@ -59,7 +59,7 @@ final class Job
 
     /**
      * Returns the job arguements
-     * 
+     *
      * @return array|null
      */
     public function getArgs() :? array
@@ -69,7 +69,7 @@ final class Job
 
     /**
      * Returns the priority of the job
-     * 
+     *
      * @return integer|null
      */
     public function getPriority() :? float
@@ -79,7 +79,7 @@ final class Job
 
     /**
      * Returns the retry status of the job
-     * 
+     *
      * @return boolean|integer|null
      */
     public function getRetry()
@@ -120,7 +120,7 @@ final class Job
             ])
             ->zincrby(($at === null ? $key : $key . '-scheduled'), (float)($at ?? $priority), $id)
             ->exec();
-        
+
         // If the queue and hash were added, hydrate the model then return true
         if ($result[0] === true) {
             $this->workerClass = $workerClass;
@@ -139,7 +139,7 @@ final class Job
 
     /**
      * Cancels a job from executing
-     * 
+     *
      * @return boolean
      */
     public function cancel()
@@ -156,7 +156,7 @@ final class Job
             ->zrem($key . '-scheduled')
             ->del($id)
             ->exec();
-        
+
         $this->workerClass = null;
         $this->args = [];
         $this->retry = null;
@@ -183,7 +183,7 @@ final class Job
         $r = \explode(':', $job['retry']);
         if ($r[0] === 'boolean') {
             $this->retry = (bool)$r[1];
-        } else if ($r[0] === 'integer') {
+        } elseif ($r[0] === 'integer') {
             $this->retry = (int)$r[1];
         }
     }

@@ -4,7 +4,9 @@ sudo: false
 # Test on PHP7
 language: php
 php:
-  - '7.1'
+  - '7.1.18'
+  - '7.2'
+  - '7.3'
   - nightly
 
 matrix:

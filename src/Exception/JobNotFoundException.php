@@ -4,4 +4,7 @@ namespace RPQ\Client\Exception;
 
 use Exception;
 
-class JobNotFoundException extends Exception {}
+class JobNotFoundException extends Exception
+{
+
+}

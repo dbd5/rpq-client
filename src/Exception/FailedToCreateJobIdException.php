@@ -4,4 +4,7 @@ namespace RPQ\Client\Exception;
 
 use Exception;
 
-class FailedToCreateJobIdException extends Exception {}
+class FailedToCreateJobIdException extends Exception
+{
+
+}

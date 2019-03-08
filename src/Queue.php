@@ -16,7 +16,7 @@ final class Queue
 {
     /**
      * The queue name
-     * 
+     *
      * @var string
      */
     private $name = 'default';
@@ -54,7 +54,7 @@ final class Queue
      * @param string $queueName
      * @param Client $client
      */
-    public function __construct($name = 'default', Client $client)
+    public function __construct($name = 'default', Client $client = null)
     {
         $this->name = $name;
         $this->client = $client;
@@ -72,7 +72,7 @@ final class Queue
 
     /**
      * Returns a job object for interaction
-     * 
+     *
      * @param string $jobId
      * @return Job
      */
@@ -159,7 +159,7 @@ final class Queue
         }
 
         foreach ($result[0] as $job) {
-           $redis->zincrby($key, 0, $job);
+            $redis->zincrby($key, 0, $job);
         }
 
         return $result[1];
