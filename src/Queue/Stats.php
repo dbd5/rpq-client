@@ -34,7 +34,7 @@ final class Stats
         if ($date === null) {
             $date = \date('Y-m-d');
         }
-        
+
         return [
             'queued' => $this->queue->count(),
             'pass' => $this->queue->getStatsByType($date, 'pass'),

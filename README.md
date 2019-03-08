@@ -1,6 +1,6 @@
 # Redis Priority Queue Client
 
-[![Travis CI](https://img.shields.io/travis/charlesportwoodii/rpq-client.svg?style=flat-square)](https://travis-ci.org/charlesportwoodii/rpq-client)
+[![Travis CI](https://img.shields.io/travis/charlesportwoodii/rpq-client.svg?style=flat-square)](https://travis-ci.com/charlesportwoodii/rpq-client)
 
 RPQ-Client is a priority task queue implementation in Redis written in pure PHP. This repository contains the Client codebase which can be used to schedule jobs from applications. Additionally, this codebase is used by the [RPQ Server](https://github.com/charlesportwoodii/rqp-server) implementation to work with and process jobs.
 
@@ -83,5 +83,15 @@ $job = $queue->push('Worker', $args, $retry, $priority, $at);
 > If you require exact timining, the job should have a priority of `PHP_MAX_INT`, and you should ensure that your job queue has sufficient workers to prevent the job execution from being delayed.
 
 ### Queue Statistics
+
+Details about the queue can be retrieved as follows:
+
+```php
+$queue->getStats()->get();
+```
+
+The stats command will return an array containing the number of elements in the queue, and details about the passed, failed, canceled, and retried jobs for the given day.
+
+To retrieve stats for a different day, call `get()` with a `Y-m-d` formatted date.
 
 ### Job Details
