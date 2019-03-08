@@ -2,6 +2,8 @@
 
 namespace RPQ;
 
+use DateTime;
+
 use RPQ\Exception\JobNotFoundException;
 use RPQ\Exception\FailedToCreateJobIdException;
 use RPQ\Queue\Stats;
@@ -195,5 +197,49 @@ final class Queue
         ];
         $parts = \array_filter($filter, 'strlen');
         return \implode(':', $parts);
+    }
+
+    /**
+     * Returns stats by a given type
+     *
+     * @param string $date
+     * @param string $type
+     * @return array
+     */
+    public function getStatsByType(string $date, string $type)  :? array
+    {
+        if ($this->isValidDate($date)) {
+            $results = $this->getClient()->getRedis()->hgetall($date . '_' . $type);
+            \ksort($results);
+            return $results;
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns true if the date is valid
+     *
+     * @param string $date
+     * @param string $format
+     * @return boolean
+     */
+    private function isValidDate(string $date, string $format = 'Y-m-d') : bool
+    {
+        $d = DateTime::createFromFormat($format, $date);
+        // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
+        return $d && $d->format($format) === $date;
+    }
+
+    /**
+     * Returns the number of elements in the queue
+     *
+     * @return integer
+     */
+    public function count() : int
+    {
+        return (int)$this->getClient()
+            ->getRedis()
+            ->zcount($this->generateListKey(), '-inf', '+inf');
     }
 }

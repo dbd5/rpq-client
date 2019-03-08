@@ -147,6 +147,7 @@ final class Job
         if ($this->id === null) {
             return false;
         }
+
         $key = $this->queue->generateListKey();
         $id = "$key:" . $this->id;
 
@@ -155,13 +156,99 @@ final class Job
             ->zrem($key)
             ->zrem($key . '-scheduled')
             ->del($id)
+            ->hset(\date('Y-m-d') . '_cancel', (string)\time(), \json_encode([
+                'class' => $this->getWorkerClass(),
+                'args' => $this->getArgs(),
+                'priority' => (float)$this->getPriority(),
+                'id' => $this->getId()
+            ]))
             ->exec();
 
         $this->workerClass = null;
         $this->args = [];
         $this->retry = null;
         $this->priority = null;
+
         return $result[0] === true || $result[1] === true;
+    }
+
+    /**
+     * Retries a job
+     *
+     * @param int $backOffTime
+     * @return boolean
+     */
+    public function retry($backOffTime = null)
+    {
+        $retry = $this->getRetry();
+
+        // Log the retry
+        $this->queue->getClient()->getRedis()->hset(\date('Y-m-d') . '_retry', (string)\time(), \json_encode([
+            'class' => $this->getWorkerClass(),
+            'args' => $this->getArgs(),
+            'retry' => \gettype($retry) === 'boolean' ? (bool)$retry : (int)($retry - 1),
+            'priority' => (float)$this->getPriority(),
+            'id' => $this->getId()
+        ]));
+
+        return $this->queue->push(
+            $this->getWorkerClass(),
+            $this->getArgs(),
+            \gettype($retry) === 'boolean' ? (bool)$retry : (int)($retry - 1),
+            (float)$this->getPriority(),
+            \time() + $backOffTime ?? 0,
+            $this->getId()
+        );
+    }
+
+    /**
+     * Ends a job and marks it as completed
+     *
+     * @return boolean
+     */
+    public function end()
+    {
+        $key = $this->queue->generateListKey();
+        $key = "$key:" . $this->id;
+
+        $retry = $this->getRetry();
+        $result = $this->queue->getClient()->getRedis()->multi()
+            ->del($key)
+            ->hset(\date('Y-m-d') . '_pass', (string)\time(), \json_encode([
+                'class' => $this->getWorkerClass(),
+                'args' => $this->getArgs(),
+                'retry' => \gettype($retry) === 'boolean' ? (bool)$retry : (int)($retry - 1),
+                'priority' => (float)$this->getPriority(),
+                'id' => $this->getId()
+            ]))
+            ->exec();
+
+        return $result[0];
+    }
+
+    /**
+     * Fails a job
+     *
+     * @return boolean
+     */
+    public function fail()
+    {
+        $key = $this->queue->generateListKey();
+        $key = "$key:" . $this->id;
+
+        $retry = $this->getRetry();
+        $result = $this->queue->getClient()->getRedis()->multi()
+            ->del($key)
+            ->hset(\date('Y-m-d') . '_fail', (string)\time(), \json_encode([
+                'class' => $this->getWorkerClass(),
+                'args' => $this->getArgs(),
+                'retry' => \gettype($retry) === 'boolean' ? (bool)$retry : (int)($retry - 1),
+                'priority' => (float)$this->getPriority(),
+                'id' => $this->getId()
+            ]))
+            ->exec();
+
+        return $result[0];
     }
 
     /**

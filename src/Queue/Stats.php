@@ -22,4 +22,25 @@ final class Stats
     {
         $this->queue = $queue;
     }
+
+    /**
+     * Retrieves stats for a given date
+     *
+     * @param string $date
+     * @return void
+     */
+    public function get(string $date = null) : array
+    {
+        if ($date === null) {
+            $date = \date('Y-m-d');
+        }
+        
+        return [
+            'queued' => $this->queue->count(),
+            'pass' => $this->queue->getStatsByType($date, 'pass'),
+            'fail' => $this->queue->getStatsByType($date, 'fail'),
+            'retry' => $this->queue->getStatsByType($date, 'retry'),
+            'cancel' => $this->queue->getStatsByType($date, 'cancel')
+        ];
+    }
 }
