@@ -308,12 +308,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "255000ad4966539a12c3b045f839eb664d3377c1"
+                "reference": "1eeeb2d5252d6d8706c5a8d9d88b8d1e7ecf2109"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/255000ad4966539a12c3b045f839eb664d3377c1",
-                "reference": "255000ad4966539a12c3b045f839eb664d3377c1",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/1eeeb2d5252d6d8706c5a8d9d88b8d1e7ecf2109",
+                "reference": "1eeeb2d5252d6d8706c5a8d9d88b8d1e7ecf2109",
                 "shasum": ""
             },
             "require": {
@@ -357,9 +357,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.0.0rc1"
+                "source": "https://github.com/nikic/PHP-Parser/tree/master"
             },
-            "time": "2023-12-20T21:32:29+00:00"
+            "time": "2023-12-22T18:57:32+00:00"
         },
         {
             "name": "phar-io/manifest",
