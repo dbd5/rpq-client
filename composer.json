@@ -1,5 +1,5 @@
 {
-    "name": "rpq/client",
+    "name": "dbd5/rpq-client",
     "description": "Redis Priority Queue Client implementation in pure PHP",
     "license": "BSD-3-Clause",
     "authors": [
@@ -13,9 +13,11 @@
             "RPQ\\": "src/"
         }
     },
+    "minimum-stability": "dev",
+    "prefer-stable": false,
     "require": {
-        "php": "^7.1",
-        "ext-redis": "^3.1.2 || ^4.0.2",
+        "php": ">=7.1",
+        "ext-redis": "*",
         "ramsey/uuid": "^3.7"
     },
     "require-dev": {
